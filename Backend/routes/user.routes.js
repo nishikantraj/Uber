@@ -1,8 +1,8 @@
 const express = require("express")
 const router = express.Router();
-const {registerUser, loginUser} = require("../controllers/user.controller")
+const {registerUser, loginUser, getUserProfile, getLogoutProfile} = require("../controllers/user.controller")
+const authUser = require("../middleware/auth.middleware")
 const z = require("zod");
-
 //Creating schema for Name, email and password
 const userSchema = z.object({
     name : z.string().min(1),
@@ -40,5 +40,7 @@ const loginMiddleware = (req,res,next)=>{
 
 router.post("/register", validateUser,registerUser);
 router.post("/login", loginMiddleware, loginUser);
+router.get("/profile",authUser,getUserProfile);
+router.get("/logout",authUser, getLogoutProfile)
 
 module.exports = router

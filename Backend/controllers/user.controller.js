@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken")
 const userModel = require("../models/user.model");
+const BlacklistToken = require("../models/blacklistToken.model")
 
 const registerUser = async (req, res) => {
     try {
@@ -48,7 +49,8 @@ const loginUser = async(req,res)=>{
             return res.status(401).json({message:"Invalid email or password"})
         
         // Generate user token
-        const token = jwt.sign({_id:user._id},process.env.JWT_SECRET)
+        const token = jwt.sign({_id:user._id},process.env.JWT_SECRET,{expiresIn: '24h'})
+        res.cookie("token", token)
         res.status(200).json({user,token})
 
     } catch (error) {
@@ -56,4 +58,21 @@ const loginUser = async(req,res)=>{
     }
 }
 
-module.exports = {registerUser,loginUser};
+const getUserProfile = async (req,res)=>{
+    console.log("check1");
+    
+    res.status(200).json(req.user);
+}
+
+const getLogoutProfile = async(req,res)=>{
+    res.clearCookie("token");
+    const token = req.cookies.token || req.headers.authorization?.split(" ")[1];
+    // await BlacklistToken.create({token:token});
+    const blacklistToken = new BlacklistToken({
+        token:token
+    })
+    blacklistToken.save()
+    res.status(200).json({message:"Logged out Successfully."})
+}
+
+module.exports = {registerUser,loginUser, getUserProfile, getLogoutProfile};
