@@ -59,8 +59,6 @@ const loginUser = async(req,res)=>{
 }
 
 const getUserProfile = async (req,res)=>{
-    console.log("check1");
-    
     res.status(200).json(req.user);
 }
 
