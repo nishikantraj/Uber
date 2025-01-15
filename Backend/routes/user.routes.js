@@ -1,6 +1,6 @@
 const express = require("express")
 const router = express.Router();
-const userController = require("../controllers/user.controller")
+const {registerUser, loginUser} = require("../controllers/user.controller")
 const z = require("zod");
 
 //Creating schema for Name, email and password
@@ -9,6 +9,11 @@ const userSchema = z.object({
     email : z.string().email().min(4),
     password : z.string().min(6),
 })
+const loginSchema = userSchema.pick({
+    email:true,
+    password:true,
+})
+
 // Middleware functioin for validating user
 const validateUser = (req,res,next)=>{
     const validating = userSchema.safeParse({
@@ -21,8 +26,19 @@ const validateUser = (req,res,next)=>{
     }
     next();
 }
+//Middleware for validating loggedin user
+const loginMiddleware = (req,res,next)=>{
+    const validating = loginSchema.safeParse({
+        email: req.body.email, 
+        password: req.body.password
+    })
+    if(!validating.success){
+        res.status(400).json({message:validating.error.errors})
+    }
+    next();
+}
 
-router.post("/register", validateUser,userController.registerUser)
-
+router.post("/register", validateUser,registerUser);
+router.post("/login", loginMiddleware, loginUser);
 
 module.exports = router
