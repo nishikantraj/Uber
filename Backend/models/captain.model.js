@@ -1,4 +1,5 @@
 const mongoose = require("mongoose")
+const jwt = require("jsonwebtoken");
 
 const captainSchema = new mongoose.Schema({
     fullName:{
@@ -14,7 +15,7 @@ const captainSchema = new mongoose.Schema({
     },
     email:{
         type:String,
-        required:true,
+        required:true
     },
     password:{
         type:String,
@@ -41,14 +42,30 @@ const captainSchema = new mongoose.Schema({
             minLength:[3,"Number plate must be 3 characters long."]
         },
         capacity:{
-            type:String,
+            type:Number,
             required:true,
             min:[1, "Capacity must be atleast 1."]
         },
         vehicleType:{
             type:String,
-            enum:["car","motorcycle","auto"],
-            required:true
+            required:true,
+            enum:["car","motorcycle","auto"]
+        }
+    },
+    location:{
+        lat:{
+            type:Number,
+        },
+        lon:{
+            type:Number,
         }
     }
-})
+});
+
+captainSchema.methods.generateAuthToken = function(){
+    const token = jwt.sign({_id:this._id}, process.env.JWT_SECRET, {expiresIn:"24h"});
+    return token;
+}
+
+const captainModel = mongoose.model("Captain",captainSchema);
+module.exports = captainModel;
